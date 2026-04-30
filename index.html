@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rudra Link Shortener | Clean URLs</title>
+    <title>Rudra Link Shortener </title>
     <style>
         :root { --neon: #bc13fe; --bg: #0b0e14; --glass: rgba(255, 255, 255, 0.05); }
         body { margin: 0; font-family: 'Poppins', sans-serif; background: var(--bg); color: #fff; }
@@ -41,7 +41,7 @@
 
 <div class="container">
     <div id="login-ui" class="card hidden">
-        <h2>CREATE Username</h2>
+        <h2>CREATE USERNAME</h2>
         <input type="text" id="usernameField" placeholder="@your_name">
         <button onclick="handleLogin()">Login</button>
     </div>
@@ -60,7 +60,7 @@
             <button id="cancelEdit" class="hidden" onclick="resetForm()" style="background:#444;">Cancel Edit</button>
         </div>
 
-        <h3 style="margin: 30px 0 15px; border-left: 4px solid var(--neon); padding-left: 10px;">Your Unlimited History</h3>
+        <h3 style="margin: 30px 0 15px; border-left: 4px solid var(--neon); padding-left: 10px;">Your  History</h3>
         <div id="historyContainer"></div>
     </div>
 
@@ -174,7 +174,7 @@
             Object.keys(data).reverse().forEach(id => {
                 if (data[id].owner === user) {
                     const item = data[id];
-                    // Clean link using #
+                    //  link using #
                     const cleanLink = window.location.origin + window.location.pathname + "#" + id;
                     container.innerHTML += `
                         <div class="history-card">
@@ -221,7 +221,7 @@
 
     window.copyToClipboard = (txt) => {
         navigator.clipboard.writeText(txt);
-        alert("Clean Link Copied!");
+        alert("Link Copied!");
     };
 </script>
 </body>
