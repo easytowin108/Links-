@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Link Master Pro | Edit & Track</title>
+    <title>Rudra Link Shortener | Clean URLs</title>
     <style>
         :root { --neon: #bc13fe; --bg: #0b0e14; --glass: rgba(255, 255, 255, 0.05); }
         body { margin: 0; font-family: 'Poppins', sans-serif; background: var(--bg); color: #fff; }
@@ -41,7 +41,7 @@
 
 <div class="container">
     <div id="login-ui" class="card hidden">
-        <h2>Set Username</h2>
+        <h2>CREATE Username</h2>
         <input type="text" id="usernameField" placeholder="@your_name">
         <button onclick="handleLogin()">Login</button>
     </div>
@@ -49,11 +49,11 @@
     <div id="dashboard-ui" class="hidden">
         <div class="header">
             <span id="userTag" style="color:var(--neon); font-weight:bold;"></span>
-            <button onclick="handleLogout()" style="width:auto; padding:5px 12px; background:#222; font-size:0.7rem;">Logout</button>
+            <button onclick="handleLogout()" style="width:auto; padding:5px 12px; background:#222; font-size:0.7rem; color:white; border:none; border-radius:5px; cursor:pointer;">LOGOUT</button>
         </div>
 
         <div class="card">
-            <h2 id="formTitle">Customize New Link</h2>
+            <h2 id="formTitle">RUDRA LINK SHORTENER</h2>
             <input type="url" id="longUrl" placeholder="Target URL (https://...)">
             <input type="text" id="customSlug" placeholder="Custom Name (slug)">
             <button id="mainBtn" onclick="createNewLink()">Create Link</button>
@@ -66,6 +66,7 @@
 
     <div id="redirect-ui" class="card hidden" style="text-align:center;">
         <h2 style="color:#00ffcc;">Redirecting...</h2>
+        <p>Please wait, Rudra is taking you to your destination.</p>
     </div>
 </div>
 
@@ -86,19 +87,22 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     let user = localStorage.getItem('active_username');
-    let editingSlug = null; // Track if we are editing
+    let editingSlug = null;
 
-    // --- Redirection Logic ---
-    const q = new URLSearchParams(window.location.search);
-    const slugID = q.get('id');
+    // --- Redirection Logic (Using Hash #) ---
+    // Jab link domain.com/#myname hoga, toh window.location.hash se "myname" milega
+    const hashID = window.location.hash.substring(1); 
 
-    if (slugID) {
+    if (hashID) {
         document.getElementById('redirect-ui').classList.remove('hidden');
-        get(ref(db, 'links/' + slugID)).then(async (snap) => {
+        get(ref(db, 'links/' + hashID)).then(async (snap) => {
             if (snap.exists()) {
-                await update(ref(db, 'links/' + slugID), { clicks: (snap.val().clicks || 0) + 1 });
+                await update(ref(db, 'links/' + hashID), { clicks: (snap.val().clicks || 0) + 1 });
                 window.location.replace(snap.val().url);
-            } else { alert("Link not valid!"); window.location.href = window.location.pathname; }
+            } else { 
+                alert("Link not valid!"); 
+                window.location.href = window.location.origin + window.location.pathname; 
+            }
         });
     } else if (!user) {
         document.getElementById('login-ui').classList.remove('hidden');
@@ -129,7 +133,6 @@
         if (!url || !slug) return alert("Both fields are required!");
 
         try {
-            // Check if slug is taken (only if name changed or new link)
             if (slug !== editingSlug) {
                 const checkSnap = await get(ref(db, 'links/' + slug));
                 if (checkSnap.exists()) return alert("This custom name is already taken!");
@@ -143,10 +146,9 @@
                 updated: editingSlug ? new Date().toLocaleString() : "Never"
             };
 
-            // If editing and slug changed, delete old one
             if (editingSlug && editingSlug !== slug) {
                 const oldData = await get(ref(db, 'links/' + editingSlug));
-                payload.clicks = oldData.val().clicks || 0; // Carry over clicks
+                payload.clicks = oldData.val().clicks || 0;
                 payload.created = oldData.val().created;
                 await remove(ref(db, 'links/' + editingSlug));
             } else if (editingSlug === slug) {
@@ -172,17 +174,18 @@
             Object.keys(data).reverse().forEach(id => {
                 if (data[id].owner === user) {
                     const item = data[id];
-                    const shortUrl = window.location.origin + window.location.pathname + "=" + id;
+                    // Clean link using #
+                    const cleanLink = window.location.origin + window.location.pathname + "#" + id;
                     container.innerHTML += `
                         <div class="history-card">
                             <div class="slug-row">
-                                <span class="slug-name">/${id}</span>
+                                <span class="slug-name">#${id}</span>
                                 <span class="click-count">${item.clicks} Clicks</span>
                             </div>
                             <span class="link-url">${item.url}</span>
                             <div class="time-info"><b>Created:</b> ${item.created}<br><b>Edited:</b> ${item.updated}</div>
                             <div class="action-btns">
-                                <button class="btn-action copy-btn" onclick="copyToClipboard('${shortUrl}')">Copy</button>
+                                <button class="btn-action copy-btn" onclick="copyToClipboard('${cleanLink}')">Copy</button>
                                 <button class="btn-action edit-btn" onclick="startEdit('${id}', '${item.url}')">Edit</button>
                                 <button class="btn-action del-btn" onclick="deleteLink('${id}')">Delete</button>
                             </div>
@@ -197,7 +200,7 @@
         editingSlug = id;
         document.getElementById('longUrl').value = url;
         document.getElementById('customSlug').value = id;
-        document.getElementById('formTitle').innerText = "Editing Link: /" + id;
+        document.getElementById('formTitle').innerText = "Editing: #" + id;
         document.getElementById('mainBtn').innerText = "Update & Save";
         document.getElementById('cancelEdit').classList.remove('hidden');
         window.scrollTo(0,0);
@@ -207,18 +210,18 @@
         editingSlug = null;
         document.getElementById('longUrl').value = '';
         document.getElementById('customSlug').value = '';
-        document.getElementById('formTitle').innerText = "Customize New Link";
+        document.getElementById('formTitle').innerText = "RUDRA LINK SHORTENER";
         document.getElementById('mainBtn').innerText = "Create Link";
         document.getElementById('cancelEdit').classList.add('hidden');
     };
 
     window.deleteLink = async (id) => {
-        if (confirm("Delete /" + id + "?")) await remove(ref(db, 'links/' + id));
+        if (confirm("Delete #" + id + "?")) await remove(ref(db, 'links/' + id));
     };
 
     window.copyToClipboard = (txt) => {
         navigator.clipboard.writeText(txt);
-        alert("Copied!");
+        alert("Clean Link Copied!");
     };
 </script>
 </body>
