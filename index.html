@@ -172,7 +172,7 @@
             Object.keys(data).reverse().forEach(id => {
                 if (data[id].owner === user) {
                     const item = data[id];
-                    const shortUrl = window.location.origin + window.location.pathname + "?id=" + id;
+                    const shortUrl = window.location.origin + window.location.pathname + "=" + id;
                     container.innerHTML += `
                         <div class="history-card">
                             <div class="slug-row">
