@@ -175,7 +175,7 @@
                 if (data[id].owner === user) {
                     const item = data[id];
                     // Clean link using #
-                    const cleanLink = window.location.origin + window.location.pathname + "#" + id;
+                    const cleanLink = window.location.origin + window.location.pathname + "" + id;
                     container.innerHTML += `
                         <div class="history-card">
                             <div class="slug-row">
